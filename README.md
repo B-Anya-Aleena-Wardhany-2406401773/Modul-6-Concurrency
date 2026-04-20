@@ -93,3 +93,45 @@ banyak request sekaligus. Jika ada satu request yang lambat, semua request lain 
 terhambat. Inilah motivasi utama untuk beralih ke multithreaded server di milestone
 berikutnya.
 </details>
+
+<details>
+<summary><b>Milestone 5</b></summary>
+
+Pada milestone ini, saya mengubah server menjadi multithreaded menggunakan ThreadPool
+agar bisa menangani banyak request secara bersamaan tanpa harus menunggu satu request
+selesai terlebih dahulu.
+
+**Cara kerja ThreadPool**
+
+ThreadPool dibuat dengan jumlah thread yang sudah ditentukan (dalam kasus ini 4 thread).
+Setiap thread direpresentasikan oleh struct `Worker` yang masing-masing punya `id` dan
+`JoinHandle`. Ketika ada request masuk, `pool.execute()` akan mengirimkan job ke salah
+satu Worker yang sedang menganggur melalui channel.
+
+
+**Penggunaan `Arc<Mutex<T>>`**
+
+Karena channel bersifat *multiple producer, single consumer*, receiver tidak bisa
+langsung di-clone dan dibagikan ke beberapa Worker begitu saja. Oleh karena itu,
+`Arc` digunakan agar beberapa Worker bisa berbagi kepemilikan receiver yang sama,
+sementara `Mutex` memastikan hanya satu Worker yang bisa mengambil job dari
+channel pada satu waktu, sehingga tidak terjadi race condition.
+
+
+**Penggunan `let` instead of `while let`**
+
+Pada implementasi Worker, digunakan `let job = receiver.lock().unwrap().recv().unwrap()`
+bukan `while let`. Alasannya adalah karena dengan `let`, temporary value seperti
+`MutexGuard` langsung di-drop setelah statement selesai, sehingga lock langsung
+dilepas dan Worker lain bisa langsung mengambil job berikutnya. Sedangkan dengan
+`while let`, lock akan tetap dipegang selama eksekusi job berlangsung, yang menyebabkan
+Worker lain harus menunggu dan menghilangkan manfaat multithreading.
+
+
+**Pembatasan jumlah thread**
+
+Jumlah thread dalam pool sengaja dibatasi (tidak unlimited) untuk menghindari
+serangan DoS. Jika server membuat thread baru untuk setiap request tanpa batas,
+seseorang bisa menghabiskan seluruh resource server hanya dengan mengirim
+banyak request sekaligus.
+</details>
