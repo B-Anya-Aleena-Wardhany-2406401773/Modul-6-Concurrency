@@ -135,3 +135,26 @@ serangan DoS. Jika server membuat thread baru untuk setiap request tanpa batas,
 seseorang bisa menghabiskan seluruh resource server hanya dengan mengirim
 banyak request sekaligus.
 </details>
+
+<details>
+<summary><b>Bonus</b></summary>
+
+Pada bonus ini, saya menambahkan fungsi `build` sebagai alternatif dari `new` untuk
+membuat `ThreadPool`. Perbedaan utamanya ada pada cara keduanya menangani error.
+
+**Perbedaan `new` vs `build`**
+| | `new` | `build` |
+|---|---|---|
+| **Return type** | `ThreadPool` | `Result<ThreadPool, PoolCreationError>` |
+| **Jika size = 0** | langsung `panic!` via `assert!` | return `Err(PoolCreationError)` |
+| **Jika berhasil** | return `ThreadPool` | return `Ok(ThreadPool)` |
+| **Error handling** | program crash | caller yang memutuskan cara handle error |
+| **Cocok dipakai** | gagal -> unrecoverable | gagal -> masih bisa ditangani |
+
+
+**Kelebihan `build` dibanding `new`**
+
+Dalam Rust, konvensi yang berlaku adalah fungsi bernama `new` diasumsikan selalu berhasil. Jika ada kemungkinan gagal, lebih tepat menggunakan nama lain seperti `build` atau `try_new` yang mengembalikan `Result`. Ini membuat kode lebih ekspresif karena dari nama fungsinya saja, caller sudah tahu bahwa operasi ini bisa gagal dan perlu ditangani.
+
+Pola ini juga lebih aman untuk digunakan di production karena error ditangani secara eksplisit, bukan dibiarkan menyebabkan panic yang bisa menghentikan seluruh program secara tiba-tiba.
+</details>
