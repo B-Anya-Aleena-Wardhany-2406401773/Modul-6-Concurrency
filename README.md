@@ -72,3 +72,24 @@ karena logika pembentukan response di bagian bawah tidak perlu diulang untuk set
 Ini adalah bentuk refactoring sederhana yang menghindari duplikasi kode.
 
 </details>
+
+<details>
+<summary><b>Milestone 4</b></summary>
+
+Pada milestone ini, saya menambahkan simulasi slow response untuk memperlihatkan
+kelemahan dari single-threaded server.
+
+Perubahan utama adalah mengganti `if-else` menjadi `match` dan menambahkan endpoint
+baru `/sleep`. Ketika browser mengakses `/sleep`, server akan berhenti selama 10 detik
+menggunakan `thread::sleep(Duration::from_secs(10))` sebelum mengirimkan response.
+
+Ketika saya membuka dua tab browser secara bersamaan, tab pertama mengakses `/sleep`
+dan tab kedua mengakses `/`, tab kedua ikut tertahan dan baru mendapat response setelah
+tab pertama selesai. Ini terjadi karena server hanya punya satu thread, sehingga setiap
+request harus antri dan diproses satu per satu secara berurutan.
+
+Hal ini menunjukkan bahwa single-threaded server sangat tidak efisien untuk menangani
+banyak request sekaligus. Jika ada satu request yang lambat, semua request lain ikut
+terhambat. Inilah motivasi utama untuk beralih ke multithreaded server di milestone
+berikutnya.
+</details>
