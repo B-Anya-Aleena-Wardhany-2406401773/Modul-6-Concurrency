@@ -45,3 +45,30 @@ Yang menarik adalah server kita tidak perlu mengerti CSS, JavaScript, maupun fon
 Ini menunjukkan pemisahan tanggung jawab yang jelas antara server (mengirim konten) dan browser (merender dan mengeksekusi konten tersebut).
 
 </details>
+
+<details>
+<summary><b>Milestone 3</b></summary>
+
+**Screenshot hasil:**
+
+![Commit 3 screen capture](assets/images/commit3.png)
+Pada milestone ini, saya memodifikasi fungsi `handle_connection` agar server bisa
+membedakan request yang valid dan tidak valid, lalu merespons dengan halaman yang sesuai.
+
+Perubahan utama adalah cara membaca request. Sebelumnya semua baris header dikumpulkan
+ke dalam `Vec`, sekarang kita hanya mengambil baris pertama saja menggunakan `.next()`
+karena baris pertama HTTP request sudah cukup untuk menentukan halaman mana yang diminta,
+contohnya `GET / HTTP/1.1`.
+
+Dari request line tersebut, server menentukan response yang tepat menggunakan `if-else`:
+
+- Jika request line adalah `GET / HTTP/1.1`, server mengembalikan `hello.html`
+  dengan status `HTTP/1.1 200 OK`.
+- Untuk request lainnya, server mengembalikan `404.html` dengan status
+  `HTTP/1.1 404 NOT FOUND`.
+
+Pemisahan antara `status_line` dan `filename` ke dalam tuple membuat kode lebih rapi
+karena logika pembentukan response di bagian bawah tidak perlu diulang untuk setiap kondisi.
+Ini adalah bentuk refactoring sederhana yang menghindari duplikasi kode.
+
+</details>
